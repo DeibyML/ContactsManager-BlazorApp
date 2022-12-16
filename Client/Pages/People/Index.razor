@@ -1,0 +1,95 @@
+﻿@page "/index-people"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject IJSRuntime JS
+@using System.IO
+@using CsvHelper
+@using System.Globalization
+
+<h3>People </h3>
+
+<div>
+    <a class="btn btn-success" href="create-person">Create person</a>
+</div>
+
+@if (people == null)
+{
+    <em>Loading...</em>
+}
+else if (people.Length == 0)
+{
+    <span>No people in DB</span>
+}
+else
+{
+
+    <table class="table ">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Id</th>
+            <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var person in people)
+        {
+            <tr>
+                <td>
+                    <a class="btn btn-success" href="edit-person/@person.Id">Edit</a>
+                    <a class="btn btn-danger" @onclick="@(() => RemovePerson(person.Id))" >Delete</a>
+                </td>
+                <td>@person.Id</td>
+                <td>@person.Name</td>
+            </tr>
+
+        }
+        </tbody>
+    </table>
+    
+    <button class="btn btn-outline-info" @onclick="ExportCsv">Export to CSV</button>
+}
+
+@code {
+    Person[]? people { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPeople();
+    }
+
+    async Task LoadPeople()
+    {
+        people = await Http.GetFromJsonAsync<Person[]>("people");
+    }
+
+    async Task RemovePerson(int idPerson)
+    {
+        var personSelected = people.First(p => p.Id == idPerson);
+        string message = $"Are you sure you want to delete to {personSelected.Name}?";
+        if (await JS.InvokeAsync<bool>("confirm", message))
+        {            
+            await Http.DeleteAsync($"people/{idPerson}");
+            await LoadPeople();
+        }
+    }
+
+    private async void ExportCsv()
+    {
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var writer = new StreamWriter(memoryStream))
+            {
+                using (var csv = new CsvWriter(writer, CultureInfo.CurrentCulture))
+                {
+                    await csv.WriteRecordsAsync(people);
+                }
+                var arr = memoryStream.ToArray();
+                await JS.SaveAs("People.csv", arr);
+            }
+        }
+    }
+
+
+}
+
