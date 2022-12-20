@@ -1,11 +1,18 @@
 ﻿@page "/"
+@using System.Globalization
+@using CsvHelper
 @inject HttpClient Http
 @inject NavigationManager NavManager
 @inject IJSRuntime JS
-@using System.IO
-@using CsvHelper
-@using System.Globalization
 
+<AuthorizeView>
+    <Authorized>
+        <span class="float-md-end">Welcome: <strong>@context.User.FindFirst(ClaimTypes.Name)?.Value </strong></span>
+    </Authorized>
+    <NotAuthorized>
+        <span class="text-danger">User is not authorized</span>
+    </NotAuthorized>
+</AuthorizeView>
 <h3>People </h3>
 
 <div>
@@ -22,8 +29,7 @@ else if (people.Length == 0)
 }
 else
 {
-
-    <table class="table ">
+    <table class="table">
         <thead>
         <tr>
             <th></th>
@@ -37,16 +43,15 @@ else
             <tr>
                 <td>
                     <a class="btn btn-success" href="edit-person/@person.Id">Edit</a>
-                    <a class="btn btn-danger" @onclick="@(() => RemovePerson(person.Id))" >Delete</a>
+                    <a class="btn btn-danger" @onclick="@(() => RemovePerson(person.Id))">Delete</a>
                 </td>
                 <td>@person.Id</td>
                 <td>@person.Name</td>
             </tr>
-
         }
         </tbody>
     </table>
-    
+
     <button class="btn btn-outline-info" @onclick="ExportCsv">Export to CSV</button>
     <button class="btn btn-outline-info" @onclick="ExportExcel">Export to Excel</button>
 }
@@ -54,8 +59,14 @@ else
 @code {
     Person[]? people { get; set; }
 
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+        var authState = await authenticationState;
+        var user = authState.User;
+
         await LoadPeople();
     }
 
@@ -67,9 +78,9 @@ else
     async Task RemovePerson(int idPerson)
     {
         var personSelected = people.First(p => p.Id == idPerson);
-        string message = $"Are you sure you want to delete to {personSelected.Name}?";
+        var message = $"Are you sure you want to delete to {personSelected.Name}?";
         if (await JS.Confirm("Confirm", message, IJSExtensions.TypeMessageSweetAlert.question))
-        {             
+        {
             await Http.DeleteAsync($"people/{idPerson}");
             await LoadPeople();
         }
@@ -101,15 +112,15 @@ else
                 from p in people
                 select new { p.Id, p.Name }, true);
 
-            // Setting some style to cells in Excel
+    // Setting some style to cells in Excel
             var header = worksheet.Cells["A1:B1"];
             worksheet.DefaultColWidth = 25;
             tableBody.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
             tableBody.Style.Fill.PatternType = ExcelFillStyle.Solid;
             tableBody.Style.Fill.BackgroundColor.SetColor(Color.WhiteSmoke);
             tableBody.Style.Border.BorderAround(ExcelBorderStyle.Medium);
-            
-            // Setting style to headers
+
+    // Setting style to headers
             header.Style.Font.Bold = true;
             header.Style.Font.Color.SetColor(Color.White);
             header.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -118,5 +129,5 @@ else
             JS.SaveAs("People.xlsx", package.GetAsByteArray());
         }
     }
-}
 
+}
