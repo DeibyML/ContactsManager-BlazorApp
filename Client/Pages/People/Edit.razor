@@ -20,7 +20,7 @@
     async Task UpdatePerson()
     {
         await Http.PutAsJsonAsync("people", person);
-        NavManager.NavigateTo("index-people");
+        NavManager.NavigateTo("/");
     }
 
 }

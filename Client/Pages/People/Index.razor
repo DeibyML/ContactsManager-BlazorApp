@@ -1,4 +1,4 @@
-﻿@page "/index-people"
+﻿@page "/"
 @inject HttpClient Http
 @inject NavigationManager NavManager
 @inject IJSRuntime JS
@@ -48,6 +48,7 @@ else
     </table>
     
     <button class="btn btn-outline-info" @onclick="ExportCsv">Export to CSV</button>
+    <button class="btn btn-outline-info" @onclick="ExportExcel">Export to Excel</button>
 }
 
 @code {
@@ -67,8 +68,8 @@ else
     {
         var personSelected = people.First(p => p.Id == idPerson);
         string message = $"Are you sure you want to delete to {personSelected.Name}?";
-        if (await JS.InvokeAsync<bool>("confirm", message))
-        {            
+        if (await JS.Confirm("Confirm", message, IJSExtensions.TypeMessageSweetAlert.question))
+        {             
             await Http.DeleteAsync($"people/{idPerson}");
             await LoadPeople();
         }
@@ -90,6 +91,32 @@ else
         }
     }
 
+    private async void ExportExcel()
+    {
+        using (var package = new ExcelPackage())
+        {
+            var worksheet = package.Workbook.Worksheets.Add("People in DB");
 
+            var tableBody = worksheet.Cells["A1:A1"].LoadFromCollection(
+                from p in people
+                select new { p.Id, p.Name }, true);
+
+            // Setting some style to cells in Excel
+            var header = worksheet.Cells["A1:B1"];
+            worksheet.DefaultColWidth = 25;
+            tableBody.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            tableBody.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            tableBody.Style.Fill.BackgroundColor.SetColor(Color.WhiteSmoke);
+            tableBody.Style.Border.BorderAround(ExcelBorderStyle.Medium);
+            
+            // Setting style to headers
+            header.Style.Font.Bold = true;
+            header.Style.Font.Color.SetColor(Color.White);
+            header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            header.Style.Fill.BackgroundColor.SetColor(Color.DarkBlue);
+
+            JS.SaveAs("People.xlsx", package.GetAsByteArray());
+        }
+    }
 }
 
