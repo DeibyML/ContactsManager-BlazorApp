@@ -1,0 +1,59 @@
+@page "/register"
+@using BlazorCrud.Client.Auth
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject IJSRuntime jsRuntime
+
+<h3>Register</h3>
+
+<EditForm Model="userInfo" OnValidSubmit="CreateUser">
+    <DataAnnotationsValidator />
+    <div class="form-field">
+        <label for="Name">Name:</label>
+        <div>
+            <InputText Class="form-control" @bind-Value="@userInfo.Name" />
+            <ValidationMessage For="@(() => userInfo.Name)" />
+        </div>
+    </div>
+    <div class="form-field">
+        <label for="Email">Email:</label>
+        <div>
+            <InputText Class="form-control" @bind-Value="@userInfo.Email" />
+            <ValidationMessage For="@(() => userInfo.Email)" />
+        </div>
+    </div>
+    <div class="form-field">
+        <label for="Password">Password:</label>
+        <div>
+            <InputPassword Class="form-control" @bind-Value="@userInfo.Password" />
+            <ValidationMessage For="() => userInfo.Password" />
+        </div>
+    </div>
+    
+    <button id="register" type="submit" class="btn btn-outline-success mt-2">Register</button>
+</EditForm>
+
+@code {
+    
+    private UserInfo userInfo = new UserInfo();
+    private readonly string urlController = "accounts/create";
+    
+    private async Task CreateUser()
+    {
+        HttpResponseMessage response = await Http.PostAsJsonAsync(urlController, userInfo);
+
+        // Deserialize JSON response from Content
+        UserToken? content = await response.Content.ReadFromJsonAsync<UserToken>();
+
+        if (response.IsSuccessStatusCode)
+        {
+            await loginService.Login(content.Token);
+            navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await jsRuntime.ShowAlert("Error creating the user", "Error", IJSExtensions.TypeMessageSweetAlert.error);
+        }
+    }
+}

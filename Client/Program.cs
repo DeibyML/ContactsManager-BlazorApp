@@ -10,6 +10,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProviderFalse>();
+
+builder.Services.AddScoped<JWTAuthenticationProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, JWTAuthenticationProvider>(provider =>
+    provider.GetRequiredService<JWTAuthenticationProvider>());
+builder.Services.AddScoped<ILoginService, JWTAuthenticationProvider>(provider => provider.GetRequiredService<JWTAuthenticationProvider>());
 await builder.Build().RunAsync();
 

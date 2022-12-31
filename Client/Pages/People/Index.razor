@@ -6,18 +6,19 @@
 @inject IJSRuntime JS
 
 <AuthorizeView>
-    <Authorized>
-        <span class="float-md-end">Welcome: <strong>@context.User.FindFirst(ClaimTypes.Name)?.Value </strong></span>
-    </Authorized>
     <NotAuthorized>
-        <span class="text-danger">User is not authorized</span>
+        <span class="text-danger">User not registered. Please register to Create or modify users</span>
     </NotAuthorized>
 </AuthorizeView>
-<h3>People </h3>
 
-<div>
-    <a class="btn btn-success" href="create-person">Create person</a>
-</div>
+<h3>People </h3>
+<AuthorizeView>
+    <Authorized>
+        <div>
+            <a class="btn btn-success" href="create-person">Create person</a>
+        </div>
+    </Authorized>
+</AuthorizeView>
 
 @if (people == null)
 {
@@ -42,8 +43,12 @@ else
         {
             <tr>
                 <td>
-                    <a class="btn btn-success" href="edit-person/@person.Id">Edit</a>
-                    <a class="btn btn-danger" @onclick="@(() => RemovePerson(person.Id))">Delete</a>
+                    <AuthorizeView>
+                        <Authorized>                            
+                            <a class="btn btn-success" href="edit-person/@person.Id">Edit</a>
+                            <a class="btn btn-danger" @onclick="@(() => RemovePerson(person.Id))">Delete</a>
+                        </Authorized>
+                    </AuthorizeView>
                 </td>
                 <td>@person.Id</td>
                 <td>@person.Name</td>

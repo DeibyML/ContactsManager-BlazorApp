@@ -4,12 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using BlazorCrud.Shared.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazorCrud.Server
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class PeopleController : ControllerBase
     {
         private readonly ApplicationDbContext context;
@@ -20,6 +23,7 @@ namespace BlazorCrud.Server
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<Person>>> Get()
         {
             return await context.People.ToListAsync();
@@ -39,10 +43,10 @@ namespace BlazorCrud.Server
             context.Entry(person).State = EntityState.Modified;
             await context.SaveChangesAsync();
             return NoContent();
-
         }
 
         [HttpGet("{id}", Name = "GetPerson")]
+        [AllowAnonymous]
         public async Task<ActionResult<Person>> Get(int id)
         {
             return await context.People.FirstOrDefaultAsync(p => p.Id == id);

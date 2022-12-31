@@ -26,6 +26,22 @@ public static class IJSExtensions
     {
         return await js.InvokeAsync<bool>("customConfirm", title, message, type.ToString());
     }
+    
+    public static Task SetInLocalStorage(this IJSRuntime js, string key, string content) => js.InvokeAsync<object>(
+            "localStorage.setItem",
+            key, content
+        ).AsTask();
+
+    public static Task<string> GetFromLocalStorage(this IJSRuntime js, string key)
+        => js.InvokeAsync<string>(
+            "localStorage.getItem",
+            key
+        ).AsTask();
+
+    public static Task RemoveItem(this IJSRuntime js, string key)
+        => js.InvokeAsync<object>(
+            "localStorage.removeItem",
+            key).AsTask();
 
     public enum TypeMessageSweetAlert
     {

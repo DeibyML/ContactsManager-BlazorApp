@@ -1,0 +1,58 @@
+@page "/login"
+@using BlazorCrud.Client.Auth
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject IJSRuntime jsRuntime
+
+<h3>Login</h3>
+
+<EditForm Model="userInfo" OnValidSubmit="LoginUser">
+    <DataAnnotationsValidator/>
+    <div class="form-field">
+        <label for="Email">Email:</label>
+        <div>
+            <InputText Class="form-control" @bind-Value="@userInfo.Email"/>
+            <ValidationMessage For="@(() => userInfo.Email)"/>
+        </div>
+    </div>
+    <div class="form-field">
+        <label for="Password">Password:</label>
+        <div>
+            <InputPassword Class="form-control" @bind-Value="@userInfo.Password"/>
+            <ValidationMessage For="() => userInfo.Password"/>
+        </div>
+    </div>
+
+    <button id="login" type="submit" class="btn btn-outline-success mt-2">Login</button>
+</EditForm>
+
+
+@code {
+
+    private readonly UserInfo userInfo = new();
+    private readonly string urlController = "accounts/login";
+
+    private async Task LoginUser()
+    {
+        Console.WriteLine("LoginUser");
+        userInfo.Name = userInfo.Email;
+        var response = await Http.PostAsJsonAsync(urlController, userInfo);
+
+        await jsRuntime.InvokeVoidAsync("console.log", response);        
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Deserialize JSON response from Content
+            var content = await response.Content.ReadFromJsonAsync<UserToken>();
+            
+            await loginService.Login(content.Token);
+            navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await jsRuntime.ShowAlert("Error login", "Error", IJSExtensions.TypeMessageSweetAlert.error);
+        }
+    }
+
+}
