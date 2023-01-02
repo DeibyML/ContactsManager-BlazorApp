@@ -3,6 +3,7 @@ This is a an app made with Blazor Wasm(WebAssembly) to manage a contact director
 
 Features:
   * All CRUD operations
+  * Dynamic Pagination
   * Export data to CSV
   * Export data to Excel
   * Authentation Sign up/In
