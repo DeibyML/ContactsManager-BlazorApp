@@ -7,7 +7,7 @@
 
 <AuthorizeView>
     <NotAuthorized>
-        <span class="text-danger">User not registered. Please register to Create or modify contacts</span>
+        <span class="text-danger">User not registered. Please sign up/in to create or modify contacts</span>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -18,9 +18,9 @@
     <Authorized>
         <div>
             <a class="btn btn-success mb-2" href="create-person">
-                <Icon IconStyle=IconStyle.Solid IconSize=IconSize.Small IconName="fa-plus"
+                <Icon IconStyle="IconStyle.Solid" IconSize="IconSize.Small" IconName="fa-plus"
                       Animation="Animation.Beat()"
-                      Color="white" />
+                      Color="white"/>
                 <span>Create contact</span>
             </a>
         </div>
@@ -38,10 +38,10 @@
         <table class="table">
             <thead>
             <tr>
-                <th class="col-3"><Icon IconName="fa-users" /> Name</th>
-                <th class="col-4"><Icon IconName="fa-phone" /> Phone</th>
-                <th class="col-3"><Icon IconName="fa-at" /> Email</th>
-                <th class="col-2"><Icon IconName="fa-pen-to-square" Animation="Animation.BeatFade()" /> Actions</th>
+                <th class="col-3"><Icon IconName="fa-users"/> Name</th>
+                <th class="col-4"><Icon IconName="fa-phone"/> Phone</th>
+                <th class="col-3"><Icon IconName="fa-at"/> Email</th>
+                <th class="col-2"><Icon IconName="fa-eye" IconStyle="IconStyle.Regular" Animation="Animation.BeatFade()"/> Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -54,8 +54,12 @@
                     <td>
                         <AuthorizeView>
                             <Authorized>
-                                <a class="btn btn-success" href="edit-person/@person.Id">Edit</a>
-                                <a class="btn btn-danger" @onclick="@(() => RemovePerson(person.Id))">Delete</a>
+                                <a class="btn btn-outline-success" href="edit-person/@person.Id">
+                                    <Icon IconName="fa-pen"/>
+                                </a>
+                                <a class="btn btn-outline-danger" @onclick="@(() => RemovePerson(person.Id))">
+                                    <Icon IconName="fa-trash"/>
+                                </a>
                             </Authorized>
                         </AuthorizeView>
                     </td>
@@ -63,9 +67,9 @@
             }
             </tbody>
         </table>
-        
-        <button class="btn btn-outline-info" @onclick="ExportCsv">Export to CSV</button>
-        <button class="btn btn-outline-info" @onclick="ExportExcel">Export to Excel</button>
+
+        <button class="btn btn-outline-success" @onclick="ExportCsv"><Icon IconName="fa-file-csv"/> Export to CSV</button>
+        <button class="btn btn-outline-success" @onclick="ExportExcel"><Icon IconName="fa-file-excel"/> Export to Excel</button>
 
     </ListTemplate>
 </GenericList>
@@ -132,27 +136,27 @@
     {
         using (var package = new ExcelPackage())
         {
-            var worksheet = package.Workbook.Worksheets.Add("People in DB");
+            var worksheet = package.Workbook.Worksheets.Add("Contacts in DB");
 
             var tableBody = worksheet.Cells["A1:A1"].LoadFromCollection(
                 from p in people
-                select new { p.Id, p.Name }, true);
+                select new { p.Id, p.Name, p.Phone, p.Email }, true);
 
-    // Setting some style to cells in Excel
-            var header = worksheet.Cells["A1:B1"];
+            // Setting some style to cells in Excel
+            var header = worksheet.Cells["A1:D1"];
             worksheet.DefaultColWidth = 25;
             tableBody.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
             tableBody.Style.Fill.PatternType = ExcelFillStyle.Solid;
             tableBody.Style.Fill.BackgroundColor.SetColor(Color.WhiteSmoke);
             tableBody.Style.Border.BorderAround(ExcelBorderStyle.Medium);
 
-    // Setting style to headers
+            // Setting style to headers
             header.Style.Font.Bold = true;
             header.Style.Font.Color.SetColor(Color.White);
             header.Style.Fill.PatternType = ExcelFillStyle.Solid;
             header.Style.Fill.BackgroundColor.SetColor(Color.DarkBlue);
 
-            JS.SaveAs("People.xlsx", package.GetAsByteArray());
+            JS.SaveAs("Contacts.xlsx", package.GetAsByteArray());
         }
     }
 
