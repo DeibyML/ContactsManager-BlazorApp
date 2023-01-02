@@ -1,4 +1,4 @@
-# BlazorApp
+# Contacts Manager - BlazorApp
 This is a an app made with Blazor Wasm(WebAssembly) to manage a contact directory. 
 
 Features:
