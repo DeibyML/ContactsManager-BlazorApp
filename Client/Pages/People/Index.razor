@@ -2,7 +2,6 @@
 @using System.Globalization
 @using CsvHelper
 @inject HttpClient Http
-@inject NavigationManager NavManager
 @inject IJSRuntime JS
 
 <AuthorizeView>
@@ -29,7 +28,7 @@
 
 <GenericList List="people">
     <NullTemplate>
-        <img src="https://usagif.com/wp-content/uploads/loading-16.gif" alt="Loading">
+        <img src="https://i.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.webp" alt="Loading">
     </NullTemplate>
     <EmptyTemplate>
         <img src="https://media3.giphy.com/media/jU9OCvBiO1besabUKU/giphy.gif?cid=790b7611248270ee3eabfd3e0cd20af43f56f79f595012b5&rid=giphy.gif&ct=g" alt="Empty">
@@ -67,12 +66,16 @@
             }
             </tbody>
         </table>
+        
+        <Pagination TotalPages="totalPages" CurrentPage="currentPage" PageChanged="SelectPage"></Pagination>
 
         <button class="btn btn-outline-success" @onclick="ExportCsv"><Icon IconName="fa-file-csv"/> Export to CSV</button>
         <button class="btn btn-outline-success" @onclick="ExportExcel"><Icon IconName="fa-file-excel"/> Export to Excel</button>
 
     </ListTemplate>
 </GenericList>
+
+<button class="btn btn-primary" @onclick="GenerateData">Create 100 rows</button>
 
 @* This is to customized the Fragment to show the list of people. *@
 @* <GenericList List="people"> *@
@@ -88,6 +91,9 @@
 
 @code {
     List<Person>? people { get; set; }
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int rowsPerPage = 10;
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
@@ -97,12 +103,24 @@
         var authState = await authenticationState;
         var user = authState.User;
 
-        await LoadPeople();
+        await LoadPeople(currentPage, rowsPerPage: 10);
+    }
+    
+    private async void SelectPage(int page)
+    {
+        currentPage = page;
+        await LoadPeople(page, rowsPerPage);
     }
 
-    async Task LoadPeople()
+    async Task LoadPeople(int page, int rowsPerPage)
     {
-        people = await Http.GetFromJsonAsync<List<Person>>("people");
+        var httpResponse = await Http.GetAsync($"people?Page={page}&RowsPerPage={rowsPerPage}");
+
+        if (httpResponse.IsSuccessStatusCode)
+        {
+            totalPages = int.Parse(httpResponse.Headers.GetValues("totalPages").FirstOrDefault());
+            people = await httpResponse.Content.ReadFromJsonAsync<List<Person>>();
+        }
     }
 
     async Task RemovePerson(int idPerson)
@@ -112,7 +130,7 @@
         if (await JS.Confirm("Confirm", message, IJSExtensions.TypeMessageSweetAlert.question))
         {
             await Http.DeleteAsync($"people/{idPerson}");
-            await LoadPeople();
+            await LoadPeople(currentPage, rowsPerPage);
         }
     }
 
@@ -156,7 +174,17 @@
             header.Style.Fill.PatternType = ExcelFillStyle.Solid;
             header.Style.Fill.BackgroundColor.SetColor(Color.DarkBlue);
 
-            JS.SaveAs("Contacts.xlsx", package.GetAsByteArray());
+            await JS.SaveAs("Contacts.xlsx", package.GetAsByteArray());
+        }
+    }
+
+    private async Task GenerateData()
+    {
+        var rows = await Http.GetFromJsonAsync<Person[]>("DataSeed.json");
+        foreach (var row in rows)
+        {
+            await Http.PostAsJsonAsync("people", row);
+            await Task.Delay(500);
         }
     }
 

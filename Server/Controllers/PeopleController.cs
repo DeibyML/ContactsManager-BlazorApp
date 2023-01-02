@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BlazorCrud.Server.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using BlazorCrud.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,9 +21,11 @@ namespace BlazorCrud.Server
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<List<Person>>> Get()
+        public async Task<ActionResult<List<Person>>> Get([FromQuery] Pagination pagination)
         {
-            return await context.People.ToListAsync();
+            var queryable = context.People.AsQueryable();
+            await HttpContext.InsertPaginationParametersInResponse(queryable, pagination.RowsPerPage);
+            return await queryable.Paginate(pagination).OrderBy(con => con.Id).ToListAsync();
         }
 
         [HttpPost]

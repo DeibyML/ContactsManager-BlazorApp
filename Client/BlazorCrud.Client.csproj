@@ -37,6 +37,11 @@
   <ItemGroup>
     <Folder Include="Pages\People\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="wwwroot\DataSeed.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>
       <Properties>
