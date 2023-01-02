@@ -7,15 +7,22 @@
 
 <AuthorizeView>
     <NotAuthorized>
-        <span class="text-danger">User not registered. Please register to Create or modify users</span>
+        <span class="text-danger">User not registered. Please register to Create or modify contacts</span>
     </NotAuthorized>
 </AuthorizeView>
 
-<h3>People </h3>
+<h3>Contacts manager</h3>
+<span>Here you can save your contacts info</span>
+
 <AuthorizeView>
     <Authorized>
         <div>
-            <a class="btn btn-success" href="create-person">Create person</a>
+            <a class="btn btn-success mb-2" href="create-person">
+                <Icon IconStyle=IconStyle.Solid IconSize=IconSize.Small IconName="fa-plus"
+                      Animation="Animation.Beat()"
+                      Color="white" />
+                <span>Create contact</span>
+            </a>
         </div>
     </Authorized>
 </AuthorizeView>
@@ -25,21 +32,25 @@
         <img src="https://usagif.com/wp-content/uploads/loading-16.gif" alt="Loading">
     </NullTemplate>
     <EmptyTemplate>
-        <img src="https://media3.giphy.com/media/jU9OCvBiO1besabUKU/giphy.gif?cid=790b7611248270ee3eabfd3e0cd20af43f56f79f595012b5&rid=giphy.gif&ct=g" alt=""Empty>
+        <img src="https://media3.giphy.com/media/jU9OCvBiO1besabUKU/giphy.gif?cid=790b7611248270ee3eabfd3e0cd20af43f56f79f595012b5&rid=giphy.gif&ct=g" alt="Empty">
     </EmptyTemplate>
     <ListTemplate>
         <table class="table">
             <thead>
             <tr>
-                <th class="col-2"></th>
-                <th class="col-4">Id</th>
-                <th class="col-6">Name</th>
+                <th class="col-3"><Icon IconName="fa-users" /> Name</th>
+                <th class="col-4"><Icon IconName="fa-phone" /> Phone</th>
+                <th class="col-3"><Icon IconName="fa-at" /> Email</th>
+                <th class="col-2"><Icon IconName="fa-pen-to-square" Animation="Animation.BeatFade()" /> Actions</th>
             </tr>
             </thead>
             <tbody>
             @foreach (var person in people)
             {
                 <tr>
+                    <td>@person.Name</td>
+                    <td>@person.Phone</td>
+                    <td>@person.Email</td>
                     <td>
                         <AuthorizeView>
                             <Authorized>
@@ -48,12 +59,14 @@
                             </Authorized>
                         </AuthorizeView>
                     </td>
-                    <td>@person.Id</td>
-                    <td>@person.Name</td>
                 </tr>
             }
             </tbody>
         </table>
+        
+        <button class="btn btn-outline-info" @onclick="ExportCsv">Export to CSV</button>
+        <button class="btn btn-outline-info" @onclick="ExportExcel">Export to Excel</button>
+
     </ListTemplate>
 </GenericList>
 
@@ -68,8 +81,6 @@
 @*     </TemplateWithType> *@
 @* </GenericList> *@
 
-<button class="btn btn-outline-info" @onclick="ExportCsv">Export to CSV</button>
-<button class="btn btn-outline-info" @onclick="ExportExcel">Export to Excel</button>
 
 @code {
     List<Person>? people { get; set; }
