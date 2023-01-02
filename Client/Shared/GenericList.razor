@@ -1,0 +1,62 @@
+@typeparam TElement
+
+@* <typeparam name="TElement">The type of the elements of source.</typeparam> *@
+
+@* Generic List using RenderFragment *@
+
+@if (List == null)
+{
+    if (NullTemplate == null)
+    {
+        <div class="alert alert-warning">No data available</div>
+    }
+    else
+    {
+        @NullTemplate
+    }
+}
+else if (List.Count == 0)
+{
+    if (EmptyTemplate == null) 
+    {
+        <div class="alert alert-warning">No items created yet</div>
+    }
+    else
+    {
+        @EmptyTemplate
+    }
+}
+else
+{
+    if (ListTemplate != null)
+    {
+        @ListTemplate        
+    }
+    else
+    {
+        foreach (var element in List)
+        {
+            @TemplateWithType(element)            
+        }
+    }
+}
+
+@code {
+
+    [Parameter]
+    public List<TElement> List { get; set; }
+
+    [Parameter]
+    public RenderFragment EmptyTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment NullTemplate { get; set; }
+    
+    [Parameter]
+    public RenderFragment ListTemplate { get; set; }
+    
+    // This is used to customize the template for each item in the list
+    [Parameter]
+    public RenderFragment<TElement> TemplateWithType { get; set; }
+
+}
